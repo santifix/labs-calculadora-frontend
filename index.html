@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suma Simple - Acceso Seguro</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e1e2f 0%, #2a2a4a 100%);
+      color: #e0e0ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+      margin-bottom: 20px;
+      color: #64ffda;
+      text-align: center;
+    }
+
+    h2 {
+      color: #a8b2d1;
+      margin-bottom: 20px;
+    }
+
+    .seccion {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .contenedorInputs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-direction: column;
+    }
+
+    /* Estilos específicos para la calculadora para que se vean en fila si hay espacio */
+    #pantallaDeLaAplicacion .contenedorInputs {
+      flex-direction: row;
+      justify-content: center;
+    }
+
+    input {
+      padding: 15px;
+      font-size: 1.1rem;
+      border: 2px solid #64ffda;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e0e0ff;
+      width: 100%;
+      box-sizing: border-box;
+      /* Para que el padding no rompa el ancho */
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 15px rgba(100, 255, 218, 0.7);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      background: white;
+      color: #0a192f;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(100, 255, 218, 0.4);
+      transition: all 0.3s ease;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(100, 255, 218, 0.6);
+    }
+
+    button.secundario {
+      background: white;
+      border: 2px solid #64ffda;
+      color: #0a192f;
+      box-shadow: none;
+      margin-top: 10px;
+    }
+
+    button.secundario:hover {
+      background: rgba(100, 255, 218, 0.1);
+    }
+
+    #contenedorDelResultado {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #64ffda;
+      margin-top: 30px;
+      text-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+      text-align: center;
+    }
+
+    .mensajeInfo {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #8892b0;
+    }
+
+    .oculto {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- PANTALLA DE AUTENTICACIÓN (LOGIN / REGISTRO) -->
+  <div id="pantallaDeAutenticacion">
+
+    <!-- Formulario de LOGIN -->
+    <div id="formularioLogin" class="seccion">
+      <h1>Iniciar Sesión</h1>
+      <div class="contenedorInputs">
+        <input id="inputUsuarioLogin" type="text" placeholder="Usuario">
+        <input id="inputContrasenaLogin" type="password" placeholder="Contraseña">
+      </div>
+      <button id="botonIniciarSesion">Ingresar</button>
+
+      <p class="mensajeInfo">¿No tienes cuenta?</p>
+      <button id="botonIrARegistro" class="secundario">Crear cuenta</button>
+      <p id="mensajeErrorLogin" style="color: #ff6b6b; margin-top: 10px;"></p>
+    </div>
+
+    <!-- Formulario de REGISTRO (oculto por defecto) -->
+    <div id="formularioRegistro" class="seccion oculto">
+      <h1>Registrarse</h1>
+      <div class="contenedorInputs">
+        <input id="inputUsuarioRegistro" type="text" placeholder="Elige un Usuario">
+        <input id="inputContrasenaRegistro" type="password" placeholder="Elige una Contraseña">
+      </div>
+      <button id="botonRegistrarse">Crear Cuenta</button>
+
+      <p class="mensajeInfo">¿Ya tienes cuenta?</p>
+      <button id="botonIrALogin" class="secundario">Volver a Login</button>
+      <p id="mensajeErrorRegistro" style="color: #ff6b6b; margin-top: 10px;"></p>
+    </div>
+
+  </div>
+
+  <!-- PANTALLA DE LA APLICACIÓN (CALCULADORA) - Oculta hasta loguearse -->
+  <div id="pantallaDeLaAplicacion" class="oculto"
+    style="width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
+
+    <h1 id="tituloDeBienvenida">Bienvenido</h1>
+
+    <div class="seccion">
+      <h2>Suma Segura Santi/Chad</h2>
+      <div class="contenedorInputs">
+        <input id="inputDelNumeroA" type="number" placeholder="Número A">
+        <input id="inputDelNumeroB" type="number" placeholder="Número B">
+      </div>
+      <button id="botonParaSumar">Sumar Números</button>
+      <div id="contenedorDelResultado">Resultado: esperando...</div>
+    </div>
+
+    <button id="botonCerrarSesion" class="secundario" style="max-width: 200px;">Cerrar Sesión</button>
+
+  </div>
+
+  <script>
+    // --- CONFIGURACIÓN DE LA API ---
+    // Cambia esta URL según el entorno:
+    // - Desarrollo local: 'http://localhost:3000'
+    // - Producción: 'https://tu-servidor.com' (cuando subas el backend a un servidor real)
+    const URL_BASE_API = 'http://localhost:3000';
+
+    // --- VARIABLES Y ELEMENTOS DEL DOM ---
+
+    // Contenedores Principales
+    const pantallaDeAutenticacion = document.getElementById('pantallaDeAutenticacion');
+    const pantallaDeLaAplicacion = document.getElementById('pantallaDeLaAplicacion');
+
+    // Login
+    const formularioLogin = document.getElementById('formularioLogin');
+    const inputUsuarioLogin = document.getElementById('inputUsuarioLogin');
+    const inputContrasenaLogin = document.getElementById('inputContrasenaLogin');
+    const botonIniciarSesion = document.getElementById('botonIniciarSesion');
+    const mensajeErrorLogin = document.getElementById('mensajeErrorLogin');
+    const botonIrARegistro = document.getElementById('botonIrARegistro');
+
+    // Registro
+    const formularioRegistro = document.getElementById('formularioRegistro');
+    const inputUsuarioRegistro = document.getElementById('inputUsuarioRegistro');
+    const inputContrasenaRegistro = document.getElementById('inputContrasenaRegistro');
+    const botonRegistrarse = document.getElementById('botonRegistrarse');
+    const mensajeErrorRegistro = document.getElementById('mensajeErrorRegistro');
+    const botonIrALogin = document.getElementById('botonIrALogin');
+
+    // App (Calculadora)
+    const botonParaSumar = document.getElementById('botonParaSumar');
+    const contenedorDelResultado = document.getElementById('contenedorDelResultado');
+    const inputDelNumeroA = document.getElementById('inputDelNumeroA');
+    const inputDelNumeroB = document.getElementById('inputDelNumeroB');
+    const tituloDeBienvenida = document.getElementById('tituloDeBienvenida');
+    const botonCerrarSesion = document.getElementById('botonCerrarSesion');
+
+    // Variable para guardar el TOKEN
+    let tokenDeAcceso = localStorage.getItem('tokenDeAccesoSantiApp');
+
+    // --- FUNCIONES DE NAVEGACIÓN ---
+
+    const mostrarLogin = () => {
+      pantallaDeAutenticacion.classList.remove('oculto');
+      formularioLogin.classList.remove('oculto');
+      formularioRegistro.classList.add('oculto');
+      pantallaDeLaAplicacion.classList.add('oculto');
+    };
+
+    const mostrarRegistro = () => {
+      formularioLogin.classList.add('oculto');
+      formularioRegistro.classList.remove('oculto');
+      mensajeErrorRegistro.innerText = '';
+    };
+
+    const mostrarAplicacion = (nombreUsuario) => {
+      pantallaDeAutenticacion.classList.add('oculto');
+      pantallaDeLaAplicacion.classList.remove('oculto');
+      if (nombreUsuario) {
+        tituloDeBienvenida.innerText = `Hola, ${nombreUsuario}`;
+      }
+    };
+
+    // --- LÓGICA DE EVENTOS ---
+
+    // Navegación entre Login y Registro
+    botonIrARegistro.addEventListener('click', mostrarRegistro);
+    botonIrALogin.addEventListener('click', mostrarLogin);
+
+    // REGISTRO
+    botonRegistrarse.addEventListener('click', () => {
+      const nombreUsuario = inputUsuarioRegistro.value;
+      const contrasenaUsuario = inputContrasenaRegistro.value;
+
+      fetch(`${URL_BASE_API}/registrarse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreUsuario, contrasenaUsuario })
+      })
+        .then(r => r.json())
+        .then(datos => {
+          if (datos.mensajeError) {
+            mensajeErrorRegistro.innerText = datos.mensajeError;
+          } else {
+            alert('¡Registro exitoso! Por favor inicia sesión.');
+            mostrarLogin();
+          }
+        })
+        .catch(e => mensajeErrorRegistro.innerText = 'Error de conexión');
+    });
+
+    // LOGIN
+    botonIniciarSesion.addEventListener('click', () => {
+      const nombreUsuario = inputUsuarioLogin.value;
+      const contrasenaUsuario = inputContrasenaLogin.value;
+
+      fetch(`${URL_BASE_API}/iniciar-sesion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreUsuario, contrasenaUsuario })
+      })
+        .then(r => r.json())
+        .then(datos => {
+          if (datos.mensajeError) {
+            mensajeErrorLogin.innerText = datos.mensajeError;
+          } else {
+            // Guardamos el token
+            tokenDeAcceso = datos.tokenDeAcceso;
+            localStorage.setItem('tokenDeAccesoSantiApp', tokenDeAcceso);
+            // Entramos a la app
+            mostrarAplicacion(nombreUsuario);
+          }
+        })
+        .catch(e => mensajeErrorLogin.innerText = 'Error de conexión');
+    });
+
+    // CERRAR SESIÓN
+    botonCerrarSesion.addEventListener('click', () => {
+      tokenDeAcceso = null;
+      localStorage.removeItem('tokenDeAccesoSantiApp');
+      mostrarLogin();
+      // Limpiar inputs
+      inputDelNumeroA.value = '';
+      inputDelNumeroB.value = '';
+      contenedorDelResultado.innerText = 'Resultado: esperando...';
+    });
+
+    // SUMAR (ACCION PROTEGIDA)
+    botonParaSumar.addEventListener('click', () => {
+      const valorA = inputDelNumeroA.value;
+      const valorB = inputDelNumeroB.value;
+
+      if (!tokenDeAcceso) {
+        alert('No tienes sesión iniciada');
+        mostrarLogin();
+        return;
+      }
+
+      fetch(`${URL_BASE_API}/sumar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenDeAcceso}` // ENVIAMOS EL TOKEN AQUÍ
+        },
+        body: JSON.stringify({
+          numeroDelClienteA: valorA,
+          numeroDelClienteB: valorB
+        })
+      })
+        .then(r => {
+          if (r.status === 401 || r.status === 403) {
+            // Token invalido o expirado
+            alert('Tu sesión ha expirado, ingresa de nuevo');
+            botonCerrarSesion.click();
+            throw new Error('Sesion expirada');
+          }
+          return r.json();
+        })
+        .then(datos => {
+          if (datos.mensajeError) {
+            contenedorDelResultado.innerText = datos.mensajeError;
+          } else {
+            contenedorDelResultado.innerText = 'Resultado: ' + datos.resultadoDeLaSuma;
+          }
+        })
+        .catch(e => {
+          console.error(e);
+        });
+    });
+
+    // Al cargar la página, si hay token guardado, intentamos mostrar la app
+    // (En una app real validaríamos el token con el backend al inicio, pero aquí asumimos validez visualmente 
+    // y si falla la petición de suma, nos sacará)
+    if (tokenDeAcceso) {
+      mostrarAplicacion();
+    } else {
+      mostrarLogin();
+    }
+
+  </script>
+</body>
+
+</html>
