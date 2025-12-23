@@ -413,15 +413,41 @@
         let htmlHistorial = `<p class="mensajeInfo">📊 Total de operaciones: ${datos.total}</p>`;
         
         datos.historial.forEach((operacion, index) => {
-          // Formatear la fecha
-          const fecha = operacion.fechaYHora ? new Date(operacion.fechaYHora._seconds * 1000) : new Date();
-          const fechaFormateada = fecha.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
+          // Formatear la fecha - manejo robusto de múltiples formatos
+          let fecha;
+          
+          if (operacion.fechaYHora) {
+            // Caso 1: Timestamp de Firestore con _seconds
+            if (operacion.fechaYHora._seconds) {
+              fecha = new Date(operacion.fechaYHora._seconds * 1000);
+            }
+            // Caso 2: String ISO o timestamp directo
+            else if (typeof operacion.fechaYHora === 'string' || typeof operacion.fechaYHora === 'number') {
+              fecha = new Date(operacion.fechaYHora);
+            }
+            // Caso 3: Ya es un objeto Date
+            else if (operacion.fechaYHora instanceof Date) {
+              fecha = operacion.fechaYHora;
+            }
+            // Caso 4: Formato desconocido, usar fecha actual
+            else {
+              fecha = new Date();
+            }
+          } else {
+            // Si no hay fecha, usar fecha actual
+            fecha = new Date();
+          }
+          
+          // Verificar que la fecha sea válida
+          const fechaFormateada = !isNaN(fecha.getTime()) 
+            ? fecha.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : 'Fecha no disponible';
 
           // Crear el item del historial
           htmlHistorial += `
