@@ -125,6 +125,46 @@
     .oculto {
       display: none !important;
     }
+
+    /* Estilos para el historial de sumas */
+    #contenedorDelHistorial {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .itemHistorial {
+      background: rgba(100, 255, 218, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 3px solid #64ffda;
+      transition: all 0.3s ease;
+    }
+
+    .itemHistorial:hover {
+      background: rgba(100, 255, 218, 0.15);
+      transform: translateX(5px);
+    }
+
+    .itemHistorial .operacion {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #64ffda;
+      margin-bottom: 5px;
+    }
+
+    .itemHistorial .fecha {
+      font-size: 0.85rem;
+      color: #8892b0;
+    }
+
+    .historialVacio {
+      text-align: center;
+      padding: 30px;
+      color: #8892b0;
+      font-style: italic;
+    }
   </style>
 </head>
 
@@ -179,6 +219,17 @@
       <div id="contenedorDelResultado">Resultado: esperando...</div>
     </div>
 
+    <!-- HISTORIAL DE SUMAS -->
+    <div class="seccion">
+      <h2>📋 Historial de Operaciones</h2>
+      <button id="botonCargarHistorial" class="secundario" style="max-width: 100%; margin-bottom: 15px;">
+        🔄 Cargar Historial
+      </button>
+      <div id="contenedorDelHistorial">
+        <p class="mensajeInfo">Haz clic en "Cargar Historial" para ver tus operaciones anteriores</p>
+      </div>
+    </div>
+
     <button id="botonCerrarSesion" class="secundario" style="max-width: 200px;">Cerrar Sesión</button>
 
   </div>
@@ -219,6 +270,10 @@
     const inputDelNumeroB = document.getElementById('inputDelNumeroB');
     const tituloDeBienvenida = document.getElementById('tituloDeBienvenida');
     const botonCerrarSesion = document.getElementById('botonCerrarSesion');
+    
+    // Historial
+    const botonCargarHistorial = document.getElementById('botonCargarHistorial');
+    const contenedorDelHistorial = document.getElementById('contenedorDelHistorial');
 
     // Variable para guardar el TOKEN
     let tokenDeAcceso = localStorage.getItem('tokenDeAccesoSantiApp');
@@ -310,6 +365,86 @@
       contenedorDelResultado.innerText = 'Resultado: esperando...';
     });
 
+    // CARGAR HISTORIAL (ACCION PROTEGIDA)
+    botonCargarHistorial.addEventListener('click', async () => {
+      // Verificar que hay token
+      if (!tokenDeAcceso) {
+        alert('No tienes sesión iniciada');
+        mostrarLogin();
+        return;
+      }
+
+      // Mostrar mensaje de carga
+      contenedorDelHistorial.innerHTML = '<p class="mensajeInfo">⏳ Cargando historial...</p>';
+      
+      try {
+        // Hacer petición al backend para obtener el historial
+        const respuesta = await fetch(`${URL_BASE_API}/historial`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenDeAcceso}` // Enviar token JWT
+          }
+        });
+
+        // Verificar si la sesión expiró
+        if (respuesta.status === 401 || respuesta.status === 403) {
+          alert('Tu sesión ha expirado, ingresa de nuevo');
+          botonCerrarSesion.click();
+          return;
+        }
+
+        // Obtener los datos
+        const datos = await respuesta.json();
+
+        // Verificar si hay error
+        if (datos.mensajeError) {
+          contenedorDelHistorial.innerHTML = `<p class="historialVacio">❌ ${datos.mensajeError}</p>`;
+          return;
+        }
+
+        // Verificar si el historial está vacío
+        if (!datos.historial || datos.historial.length === 0) {
+          contenedorDelHistorial.innerHTML = '<p class="historialVacio">📭 No hay operaciones en el historial. ¡Realiza tu primera suma!</p>';
+          return;
+        }
+
+        // Construir el HTML del historial
+        let htmlHistorial = `<p class="mensajeInfo">📊 Total de operaciones: ${datos.total}</p>`;
+        
+        datos.historial.forEach((operacion, index) => {
+          // Formatear la fecha
+          const fecha = operacion.fechaYHora ? new Date(operacion.fechaYHora._seconds * 1000) : new Date();
+          const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          // Crear el item del historial
+          htmlHistorial += `
+            <div class="itemHistorial">
+              <div class="operacion">
+                ${operacion.numeroA} + ${operacion.numeroB} = ${operacion.resultado}
+              </div>
+              <div class="fecha">
+                📅 ${fechaFormateada}
+              </div>
+            </div>
+          `;
+        });
+
+        // Mostrar el historial en el DOM
+        contenedorDelHistorial.innerHTML = htmlHistorial;
+
+      } catch (error) {
+        console.error('Error al cargar historial:', error);
+        contenedorDelHistorial.innerHTML = '<p class="historialVacio">❌ Error al cargar el historial. Intenta de nuevo.</p>';
+      }
+    });
+
     // SUMAR (ACCION PROTEGIDA)
     botonParaSumar.addEventListener('click', () => {
       const valorA = inputDelNumeroA.value;
@@ -346,6 +481,8 @@
             contenedorDelResultado.innerText = datos.mensajeError;
           } else {
             contenedorDelResultado.innerText = 'Resultado: ' + datos.resultadoDeLaSuma;
+            // Recargar el historial automáticamente después de sumar
+            botonCargarHistorial.click();
           }
         })
         .catch(e => {
